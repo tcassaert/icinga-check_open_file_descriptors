@@ -5,7 +5,7 @@ This check provides functionality to check the open file descriptors per process
 ## Usage
 
 ```
-$ check_open_files -h
+# check_open_files -h
   -critical float
         critical treshold (default 0.9)
   -warning float
