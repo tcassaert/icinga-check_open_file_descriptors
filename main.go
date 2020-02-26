@@ -115,7 +115,8 @@ func checkOpenFileDescriptors(critical, warning float64) {
 		}
 		// If all is fine, print OK message
 	} else {
-		setOk("All processes' open file descriptors are below the provided tresholds.\n")
+		msg := fmt.Sprintf("All processes' open file descriptors are below the maximum of %d.", int(maxOpenFiles))
+		setOk(msg)
 	}
 }
 
