@@ -1,4 +1,4 @@
-module github.com/tcassaert/icinga-check_open_files
+module github.com/tcassaert/icinga-check_open_files_descriptors
 
 go 1.13
 
