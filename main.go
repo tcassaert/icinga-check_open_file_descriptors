@@ -91,7 +91,7 @@ func checkOpenFileDescriptors(critical, warning float64) {
 		} else {
 			// If there's only one process critical, give some more info on the process
 			for _, critical := range criticals {
-				msg := fmt.Sprintf("Proccess %s with PID %d uses %d/%d open file descriptors.\n", critical.Name, critical.Pid, int(critical.OpenFiles), int(maxOpenFiles))
+				msg := fmt.Sprintf("Proccess %s with PID %d uses %d/%d open file descriptors. | openfiles=%d;;;;%d\n", critical.Name, critical.Pid, int(critical.OpenFiles), int(maxOpenFiles), int(critical.OpenFiles), int(maxOpenFiles))
 				setCritical(msg)
 			}
 		}
@@ -109,7 +109,7 @@ func checkOpenFileDescriptors(critical, warning float64) {
 		} else {
 			// If there's only one process in warning, give some more info on the process
 			for _, warning := range warnings {
-				msg := fmt.Sprintf("Proccess %s with PID %d uses %d/%d open file descriptors.\n", warning.Name, warning.Pid, int(warning.OpenFiles), int(maxOpenFiles))
+				msg := fmt.Sprintf("Proccess %s with PID %d uses %d/%d open file descriptors. | openfiles=%d;;;;%d\n", warning.Name, warning.Pid, int(warning.OpenFiles), int(maxOpenFiles), int(warning.OpenFiles), int(maxOpenFiles))
 				setWarning(msg)
 			}
 		}
