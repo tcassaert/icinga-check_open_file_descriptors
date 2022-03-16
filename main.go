@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2020 Thomas Cassaert
+Copyright (c) 2022 Thomas Cassaert
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -83,10 +83,10 @@ func checkOpenFileDescriptors(critical, warning float64) {
 		// If there is more than 1 critical process, print all IDs
 		if len(criticals) > 1 {
 			for _, critical := range criticals {
-				pids.WriteString(fmt.Sprintf("%d, ", critical.Pid))
+				pids.WriteString(fmt.Sprintf("%s(PID: %d), ", critical.Name, critical.Pid))
 			}
 			trimmedString := strings.TrimSuffix(pids.String(), ", ")
-			msg := fmt.Sprintf("Processes with IDs %s have too many open file descriptors.\n", trimmedString)
+			msg := fmt.Sprintf("Processes %s have too many open file descriptors.\n", trimmedString)
 			setCritical(msg)
 		} else {
 			// If there's only one process critical, give some more info on the process
@@ -101,10 +101,10 @@ func checkOpenFileDescriptors(critical, warning float64) {
 		// If there is more than 1 process in warning, print all IDs
 		if len(warnings) > 1 {
 			for _, warning := range warnings {
-				pids.WriteString(fmt.Sprintf("%d, ", warning.Pid))
+				pids.WriteString(fmt.Sprintf("%s(PID: %d), ", warning.Name, warning.Pid))
 			}
 			trimmedString := strings.TrimSuffix(pids.String(), ", ")
-			msg := fmt.Sprintf("Processes with IDs %s have too many open file descriptors.\n", trimmedString)
+			msg := fmt.Sprintf("Processes %s have too many open file descriptors.\n", trimmedString)
 			setWarning(msg)
 		} else {
 			// If there's only one process in warning, give some more info on the process
