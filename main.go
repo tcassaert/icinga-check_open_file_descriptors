@@ -44,14 +44,16 @@ func main() {
 
 	// Parse flags
 	var critical, warning float64
+	var processName string
 	flag.Float64Var(&critical, "critical", 0.9, "critical treshold")
 	flag.Float64Var(&warning, "warning", 0.8, "warning treshold")
+	flag.StringVar(&processName, "process", "", "Name of the process to watch")
 	flag.Parse()
 
-	checkOpenFileDescriptors(critical, warning)
+	checkOpenFileDescriptors(critical, warning, processName)
 }
 
-func checkOpenFileDescriptors(critical, warning float64) {
+func checkOpenFileDescriptors(critical, warning float64, processName string) {
 	// Get all processes running on the system
 	processes, _ := process.Processes()
 	// Get the max open files per process
@@ -65,6 +67,25 @@ func checkOpenFileDescriptors(critical, warning float64) {
 	var warnings []Proc
 	// Loop over all processes and store the processes that exceed the tresholds in the correct slice
 	for _, proc := range processes {
+		procName, _ := proc.Name()
+		if procName == processName {
+			pid := proc.Pid
+			openFiles, _ := proc.OpenFiles()
+			openFilesCount := float64(len(openFiles))
+			name, _ := proc.Name()
+			process := Proc{Name: name, OpenFiles: openFilesCount, Pid: pid}
+			if openFilesCount > criticalValue {
+				msg := fmt.Sprintf("Proccess %s with PID %d uses %d/%d open file descriptors. | %s=%d;;;;%d\n", process.Name, process.Pid, int(process.OpenFiles), int(maxOpenFiles), process.Name, int(process.OpenFiles), int(maxOpenFiles))
+				setCritical(msg)
+			} else if openFilesCount > warningValue {
+				msg := fmt.Sprintf("Proccess %s with PID %d uses %d/%d open file descriptors. | %s=%d;;;;%d\n", process.Name, process.Pid, int(process.OpenFiles), int(maxOpenFiles), process.Name, int(process.OpenFiles), int(maxOpenFiles))
+				setWarning(msg)
+			} else {
+				msg := fmt.Sprintf("Proccess %s with PID %d uses %d/%d open file descriptors. | %s=%d;;;;%d\n", process.Name, process.Pid, int(process.OpenFiles), int(maxOpenFiles), process.Name, int(process.OpenFiles), int(maxOpenFiles))
+				setOk(msg)
+			}
+		}
+
 		pid := proc.Pid
 		openFiles, _ := proc.OpenFiles()
 		openFilesCount := float64(len(openFiles))
