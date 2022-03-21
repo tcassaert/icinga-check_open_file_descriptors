@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sort"
 	"strings"
 	"syscall"
 
@@ -62,30 +63,69 @@ func checkOpenFileDescriptors(critical, warning float64, processName string) {
 	criticalValue := maxOpenFiles * critical
 	warningValue := maxOpenFiles * warning
 
-	// Slices to store processes that exceed tresholds
+	// Slice to store criticals
 	var criticals []Proc
+	// Slice to store the all the Open File Descriptors of processes matching the -process parameter
+	var openFilesSpecificProcess []float64
+	// Slice to store all the processes matching the -process parameter
+	var specificProcesses []Proc
+	// Slice to store warnings
 	var warnings []Proc
-	// Loop over all processes and store the processes that exceed the tresholds in the correct slice
+
+	/*
+		   Range over all processes.
+			 Check if their name equals the one in the -process parameter.
+			 If it does, add it to the specificProcesses slice
+	*/
 	for _, proc := range processes {
 		procName, _ := proc.Name()
 		if procName == processName {
+			fmt.Println(procName)
 			pid := proc.Pid
 			openFiles, _ := proc.OpenFiles()
 			openFilesCount := float64(len(openFiles))
 			name, _ := proc.Name()
 			process := Proc{Name: name, OpenFiles: openFilesCount, Pid: pid}
-			if openFilesCount > criticalValue {
-				msg := fmt.Sprintf("Proccess %s with PID %d uses %d/%d open file descriptors. | %s=%d;;;;%d\n", process.Name, process.Pid, int(process.OpenFiles), int(maxOpenFiles), process.Name, int(process.OpenFiles), int(maxOpenFiles))
+			specificProcesses = append(specificProcesses, process)
+		}
+	}
+
+	/*
+		    Range over the specificProcesses slice
+				Add the number of Open File Descriptors of that process to the openFilesSpecificProcess slice
+	*/
+	for i, _ := range specificProcesses {
+		nrOpenFiles := specificProcesses[i].OpenFiles
+		openFilesSpecificProcess = append(openFilesSpecificProcess, nrOpenFiles)
+		sort.Float64s(openFilesSpecificProcess)
+	}
+
+	/*
+		   Range over the specificProcesses slice
+			 If number of Open File Descriptors for the specific process matches the biggest number in the openFilesSpecificProcess slice,
+			 evaluate it's value and exit appropriately
+	*/
+	for _, specificProc := range specificProcesses {
+		openFilesSpecificProc := openFilesSpecificProcess[len(openFilesSpecificProcess)-1]
+		if specificProc.OpenFiles == openFilesSpecificProc {
+			if specificProc.OpenFiles > criticalValue {
+				msg := fmt.Sprintf("Proccess %s with PID %d uses %d/%d open file descriptors. | %s=%d;;;;%d\n", specificProc.Name, specificProc.Pid, int(specificProc.OpenFiles), int(maxOpenFiles), specificProc.Name, int(specificProc.OpenFiles), int(maxOpenFiles))
 				setCritical(msg)
-			} else if openFilesCount > warningValue {
-				msg := fmt.Sprintf("Proccess %s with PID %d uses %d/%d open file descriptors. | %s=%d;;;;%d\n", process.Name, process.Pid, int(process.OpenFiles), int(maxOpenFiles), process.Name, int(process.OpenFiles), int(maxOpenFiles))
+			} else if specificProc.OpenFiles > warningValue {
+				msg := fmt.Sprintf("Proccess %s with PID %d uses %d/%d open file descriptors. | %s=%d;;;;%d\n", specificProc.Name, specificProc.Pid, int(specificProc.OpenFiles), int(maxOpenFiles), specificProc.Name, int(specificProc.OpenFiles), int(maxOpenFiles))
 				setWarning(msg)
 			} else {
-				msg := fmt.Sprintf("Proccess %s with PID %d uses %d/%d open file descriptors. | %s=%d;;;;%d\n", process.Name, process.Pid, int(process.OpenFiles), int(maxOpenFiles), process.Name, int(process.OpenFiles), int(maxOpenFiles))
+				msg := fmt.Sprintf("Proccess %s with PID %d uses %d/%d open file descriptors. | %s=%d;;;;%d\n", specificProc.Name, specificProc.Pid, int(specificProc.OpenFiles), int(maxOpenFiles), specificProc.Name, int(specificProc.OpenFiles), int(maxOpenFiles))
 				setOk(msg)
 			}
 		}
+	}
 
+	/*
+		    Only getting here if there's no -process parameter passed
+				Range over processes and add them to the correct slice (warnings or criticals)
+	*/
+	for _, proc := range processes {
 		pid := proc.Pid
 		openFiles, _ := proc.OpenFiles()
 		openFilesCount := float64(len(openFiles))
