@@ -80,7 +80,6 @@ func checkOpenFileDescriptors(critical, warning float64, processName string) {
 	for _, proc := range processes {
 		procName, _ := proc.Name()
 		if procName == processName {
-			fmt.Println(procName)
 			pid := proc.Pid
 			openFiles, _ := proc.OpenFiles()
 			openFilesCount := float64(len(openFiles))
